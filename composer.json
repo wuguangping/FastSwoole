@@ -1,0 +1,38 @@
+{
+    "name": "wuguangping/eswoole",
+    "description": "swoole",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Goh",
+            "email": "wuguangping@qq.com"
+        }
+    ],
+    "keywords": [
+        "easyswoole",
+        "swoole",
+        "php"
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "ext-json": "*",
+        "easyswoole/easyswoole": "^3",
+        "easyswoole/mysqli": "^1.1"
+    },
+    "require-dev": {
+        "easyswoole/swoole-ide-helper": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "ESwoole\\": "src/",
+            "App\\": "demo/App/"
+        }
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.laravel-china.org"
+        }
+    }
+}

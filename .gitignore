@@ -1,0 +1,15 @@
+# ide
+/.idea/
+
+# composer
+vendor/
+composer.lock
+
+# ESwoole
+/Log/
+/Temp/
+dev.php
+easyswoole
+EasySwooleEvent.php
+produce.php
+
