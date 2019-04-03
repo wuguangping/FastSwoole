@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ESwoole\Utility;
+namespace FastSwoole\Utility;
 
 
 class Code

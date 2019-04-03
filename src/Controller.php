@@ -1,11 +1,11 @@
 <?php
 
 
-namespace ESwoole;
+namespace FastSwoole;
 
 
 use EasySwoole\Http\AbstractInterface\Controller as AbstractController;
-use ESwoole\Utility\Code;
+use FastSwoole\Utility\Code;
 
 class Controller extends AbstractController
 {

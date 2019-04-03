@@ -1,14 +1,14 @@
 <?php
 
 
-namespace ESwoole;
+namespace FastSwoole;
 
 
 use EasySwoole\Component\Pool\PoolManager;
 use EasySwoole\EasySwoole\Config;
 use EasySwoole\Mysqli\TpDb;
-use ESwoole\Utility\Pool\MysqlObject;
-use ESwoole\Utility\Pool\MysqlPool;
+use FastSwoole\Utility\Pool\MysqlObject;
+use FastSwoole\Utility\Pool\MysqlPool;
 
 /**
  * Class Db

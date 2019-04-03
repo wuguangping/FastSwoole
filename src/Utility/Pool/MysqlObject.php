@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ESwoole\Utility\Pool;
+namespace FastSwoole\Utility\Pool;
 
 
 use EasySwoole\Component\Pool\PoolObjectInterface;

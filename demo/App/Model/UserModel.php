@@ -4,7 +4,7 @@
 namespace App\Model;
 
 
-use ESwoole\Model;
+use FastSwoole\Model;
 
 class UserModel extends Model
 {

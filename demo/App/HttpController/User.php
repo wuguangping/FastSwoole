@@ -5,8 +5,8 @@ namespace App\HttpController;
 
 
 use App\Model\UserModel;
-use ESwoole\Controller;
-use ESwoole\Db;
+use FastSwoole\Controller;
+use FastSwoole\Db;
 
 class User extends Controller
 {
