@@ -1,8 +1,12 @@
 <?php
-
+/**
+ * FastSwoole - A PHP Framework For EasySwoole
+ *
+ * @package FastSwoole
+ * @author  wuguangping (Goh) <wuguangping@qq.com>
+ */
 
 namespace FastSwoole;
-
 
 use EasySwoole\Component\Pool\PoolManager;
 use EasySwoole\EasySwoole\Config;
@@ -43,7 +47,7 @@ class Model
      * 是否使用where调用
      * @var array
      */
-    protected $isWhere = FALSE;
+    protected $isWhere = false;
 
     /**
      * 保存对象数据的数组
@@ -62,7 +66,7 @@ class Model
      * 是否自动记录创建时间
      * @var bool
      */
-    protected $createTime = FALSE;
+    protected $createTime = false;
     /**
      * 记录创建时间字段名
      * @var string
@@ -73,7 +77,7 @@ class Model
      * 是否开启软删除
      * @var bool
      */
-    protected $softDelete = FALSE;
+    protected $softDelete = false;
     /**
      * 软删除时间字段名
      * @var string
@@ -119,7 +123,7 @@ class Model
         if ($db instanceof MysqlObject) {
             $db->gc();
             PoolManager::getInstance()->getPool(MysqlPool::class)->recycleObj($db);
-            $db = NULL;
+            $db = null;
         }
     }
 
@@ -142,7 +146,7 @@ class Model
             $this->db = $db;
             return $this;
         } else {
-            return NULL;
+            return null;
         }
     }
 
@@ -205,23 +209,23 @@ class Model
      * @param bool $commit
      * @return array|bool
      */
-    function rollback($commit = TRUE)
+    function rollback($commit = true)
     {
         return $this->getDb()->rollback($commit);
     }
 
     /**
      * 添加一个WHERE条件
-     * @param string $whereProp  字段名
+     * @example UserModel::init()->where('status', 0)->where('id', 100, '>')->...
      * @param string $whereValue 字段值
      * @param string $operator   字段操作
      * @param string $cond       多个where的逻辑关系
+     * @param string $whereProp  字段名
      * @return $this
-     * @example UserModel::init()->where('status', 0)->where('id', 100, '>')->...
      */
     function where($whereProp, $whereValue = 'DBNULL', $operator = '=', $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->where($whereProp, $whereValue, $operator, $cond);
         return $this;
     }
@@ -235,7 +239,7 @@ class Model
      */
     function whereOr($whereProp, $whereValue = 'DBNULL', $operator = '=')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereOr($whereProp, $whereValue, $operator);
         return $this;
     }
@@ -248,7 +252,7 @@ class Model
      */
     function whereNull($whereProp, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereNull($whereProp, $cond);
         return $this;
     }
@@ -261,7 +265,7 @@ class Model
      */
     function whereNotNull($whereProp, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereNotNull($whereProp, $cond);
         return $this;
     }
@@ -274,7 +278,7 @@ class Model
      */
     function whereEmpty($whereProp, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereEmpty($whereProp, $cond);
         return $this;
     }
@@ -287,7 +291,7 @@ class Model
      */
     function whereNotEmpty($whereProp, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereEmpty($whereProp, $cond);
         return $this;
     }
@@ -301,7 +305,7 @@ class Model
      */
     function whereIn($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereIn($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -315,37 +319,37 @@ class Model
      */
     function whereNotIn($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereNotIn($whereProp, $whereValue, $cond);
         return $this;
     }
 
     /**
      * 在两者之间
-     * @param string       $whereProp  字段名
+     * @example UserModel::init()->whereBetween('id', '1,2')->get()
      * @param string|array $whereValue 可传数组或逗号分隔 [ 1 , 2 ] OR '1,2'
      * @param string       $cond       多个where的逻辑关系
+     * @param string       $whereProp  字段名
      * @return $this
-     * @example UserModel::init()->whereBetween('id', '1,2')->get()
      */
     function whereBetween($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereBetween($whereProp, $whereValue, $cond);
         return $this;
     }
 
     /**
      * 不在两者之间
-     * @param string       $whereProp  字段名
+     * @example UserModel::init()->whereNotBetween('id', '1,2')->get()
      * @param string|array $whereValue 可传数组或逗号分隔 [ 1 , 2 ] OR '1,2'
      * @param string       $cond       多个where的逻辑关系
+     * @param string       $whereProp  字段名
      * @return $this
-     * @example UserModel::init()->whereNotBetween('id', '1,2')->get()
      */
     function whereNotBetween($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereNotBetween($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -359,7 +363,7 @@ class Model
      */
     function whereLike($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereLike($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -373,19 +377,19 @@ class Model
      */
     function whereNotLike($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = TRUE;
+        $this->isWhere = true;
         $this->getDb()->whereNotLike($whereProp, $whereValue, $cond);
         return $this;
     }
 
     /**
      * SELECT 查询数据
-     * @param null|integer $numRows 需要返回的行数
-     * @param string       $columns 需要返回的字段
-     * @return $this|mixed
      * @example UserModel::init()->where('status', 1)->get([0, 20], 'id, name')
+     * @param string       $columns 需要返回的字段
+     * @param null|integer $numRows 需要返回的行数
+     * @return $this|mixed
      */
-    function get($numRows = NULL, $columns = '')
+    function get($numRows = null, $columns = '')
     {
         $columns = $columns ? $columns : $this->columns;
         return $this->getDb()->get($this->tableName, $numRows, $columns);
@@ -393,9 +397,9 @@ class Model
 
     /**
      * SELECT LIMIT 1 查询单条数据
+     * @example UserModel::init()->where('status', 1)->getOne('id, name')
      * @param string $columns 需要返回的字段
      * @return Mysqli|mixed|null
-     * @example UserModel::init()->where('status', 1)->getOne('id, name')
      */
     function getOne($columns = '')
     {
@@ -420,20 +424,20 @@ class Model
      * @param null   $limit      最多返回几条数据
      * @return array
      */
-    function getColumn($columnName, $limit = NULL)
+    function getColumn($columnName, $limit = null)
     {
         return $this->getDb()->getColumn($this->tableName, $columnName, $limit);
     }
 
     /**
      * 插入一行数据
+     * @example UserModel::init()->insert(['status' => 1]);
      * @param array $insertData
      * @return bool|int
-     * @example UserModel::init()->insert(['status' => 1]);
      */
     function insert($insertData)
     {
-        if ($this->createTime === TRUE) {
+        if ($this->createTime === true) {
             $insertData[$this->createTimeName] = time();
         }
         return $this->getDb()->insert($this->tableName, $insertData);
@@ -441,13 +445,13 @@ class Model
 
     /**
      * 替换插入一行数据
+     * @example UserModel::init()->replace(['status' => 1]);
      * @param array $insertData
      * @return bool|int|null
-     * @example UserModel::init()->replace(['status' => 1]);
      */
     function replace($insertData)
     {
-        if ($this->createTime === TRUE) {
+        if ($this->createTime === true) {
             $insertData[$this->createTimeName] = time();
         }
         return $this->getDb()->replace($this->tableName, $insertData);
@@ -459,7 +463,7 @@ class Model
      * @param string $lastInsertId  变量值
      * @return $this
      */
-    function onDuplicate($updateColumns, $lastInsertId = NULL)
+    function onDuplicate($updateColumns, $lastInsertId = null)
     {
         $this->getDb()->onDuplicate($updateColumns, $lastInsertId);
         return $this;
@@ -471,16 +475,16 @@ class Model
      * @param array|null $dataKeys        插入数据对应的字段名
      * @return array|bool
      */
-    function insertMulti(array $multiInsertData, array $dataKeys = NULL)
+    function insertMulti(array $multiInsertData, array $dataKeys = null)
     {
         return $this->getDb()->insertMulti($this->tableName, $multiInsertData, $dataKeys);
     }
 
     /**
      * 该查询条件下是否存在数据
+     * @example UserModel::init()->where('status', 1)->has()
      * @param string $tableName 查询的表名称
      * @return bool
-     * @example UserModel::init()->where('status', 1)->has()
      */
     function has()
     {
@@ -489,11 +493,11 @@ class Model
 
     /**
      * 聚合-计算总数
+     * @example UserModel::init()->where('status', 1)->count('id')
      * @param string|null $filedName 字段名称
      * @return mixed
-     * @example UserModel::init()->where('status', 1)->count('id')
      */
-    function count($filedName = NULL)
+    function count($filedName = null)
     {
         return $this->getDb()->count($this->tableName, $filedName);
     }
@@ -540,13 +544,13 @@ class Model
 
     /**
      * 删除数据
+     * @example UserModel::init()->where('id', 1)->delete()
      * @param null|integer $numRows 限制删除的行数
      * @return bool|null
-     * @example UserModel::init()->where('id', 1)->delete()
      */
-    function delete($numRows = NULL)
+    function delete($numRows = null)
     {
-        if ($this->softDelete === TRUE) {
+        if ($this->softDelete === true) {
             $tableData[$this->softDeleteTimeName] = time();
             return $this->getDb()->update($this->tableName, $tableData, $numRows);
         } else {
@@ -557,11 +561,11 @@ class Model
     /**
      * 设置单个字段的值 (属于Update的快捷方法 )
      * 可用于快速更改某个字段的状态
-     * @param $tableName
+     * @example UserModel::init()->whereIn('id', '1,2,3,4')->setValue('status', 1)
      * @param $filedName
      * @param $value
+     * @param $tableName
      * @return mixed
-     * @example UserModel::init()->whereIn('id', '1,2,3,4')->setValue('status', 1)
      */
     function setValue($filedName, $value)
     {
@@ -570,12 +574,12 @@ class Model
 
     /**
      * 更新数据
-     * @param array        $tableData 需要更新的数据
-     * @param null|integer $numRows   限制更新的行数
-     * @return mixed
      * @example UserModel::init()->where('id', 1)->update(['status' => 1]);
+     * @param null|integer $numRows   限制更新的行数
+     * @param array        $tableData 需要更新的数据
+     * @return mixed
      */
-    function update($tableData, $numRows = NULL)
+    function update($tableData, $numRows = null)
     {
         return $this->getDb()->update($this->tableName, $tableData, $numRows);
     }
@@ -611,11 +615,11 @@ class Model
 
     /**
      * 自增某个字段
-     * @param string    $filedName 操作的字段名称
+     * @example UserModel::init()->where('id', 1)->setInc('level', 1)
      * @param int|float $num       操作数量
+     * @param string    $filedName 操作的字段名称
      * @return mixed
      * @TODO    set inc after lock some line
-     * @example UserModel::init()->where('id', 1)->setInc('level', 1)
      */
     function setInc($filedName, $num = 1)
     {
@@ -624,12 +628,12 @@ class Model
 
     /**
      * 自减某个字段
-     * @param string    $tableName 表名称
+     * @example UserModel::init()->where('id', 1)->where('level', 1, '>')->setInc('level', 1)
      * @param string    $filedName 操作的字段名称
      * @param int|float $num       操作数量
+     * @param string    $tableName 表名称
      * @return mixed
      * @TODO    set dec after lock some line
-     * @example UserModel::init()->where('id', 1)->where('level', 1, '>')->setInc('level', 1)
      */
     function setDec($filedName, $num = 1)
     {
@@ -641,7 +645,7 @@ class Model
      * @param bool $fetch
      * @return $this
      */
-    function fetchSql(bool $fetch = TRUE)
+    function fetchSql(bool $fetch = true)
     {
         $this->getDb()->fetchSql($fetch);
         return $this;
@@ -649,8 +653,8 @@ class Model
 
     /**
      * 查询结果总数
-     * @return $this
      * @example $userModel = new UserModel()->where('status', 1)->whithTotalCount()->get()
+     * @return $this
      */
     public function withTotalCount()
     {
@@ -660,8 +664,8 @@ class Model
 
     /**
      * 返回结果总数
-     * @return int
      * @example $userModel->getTotalCount()
+     * @return int
      */
     function getTotalCount(): int
     {
@@ -769,7 +773,7 @@ class Model
      * @param null   $customFieldsOrRegExp
      * @return $this
      */
-    public function orderBy($orderByField, $orderByDirection = 'DESC', $customFieldsOrRegExp = NULL)
+    public function orderBy($orderByField, $orderByDirection = 'DESC', $customFieldsOrRegExp = null)
     {
         $this->getDb()->orderBy($orderByField, $orderByDirection, $customFieldsOrRegExp);
         return $this;

@@ -1,8 +1,12 @@
 <?php
-
+/**
+ * FastSwoole - A PHP Framework For EasySwoole
+ *
+ * @package FastSwoole
+ * @author  wuguangping (Goh) <wuguangping@qq.com>
+ */
 
 namespace App\HttpController;
-
 
 use App\Model\UserModel;
 use FastSwoole\Controller;
@@ -17,6 +21,6 @@ class User extends Controller
 
     function model()
     {
-        $this->success(UserModel::init()->where('id', 2, '>')->get(NULL, 'id, username'));
+        $this->success(UserModel::init()->where('id', 2, '>')->get(null, 'id, username'));
     }
 }

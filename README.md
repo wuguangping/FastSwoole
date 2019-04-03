@@ -1,10 +1,9 @@
-# swoole
-目前属于开发阶段，composer 请引入本库的github地址，composer还没有打tag
-在EasySwoole的基础上开发，增加了大量接口开发时需要的简便类和方法。
+# FastSwoole
+目前属于开发阶段，composer 请引入本库的 github 地址，composer 还没有打 tag 在 FastSwoole 的基础上开发，增加了大量接口开发时需要的简便类和方法。
 
 # 安装
 ```sh
-composer require wuguangping/swoole
+composer require wuguangping/FastSwoole
 ```
 
 # TODO

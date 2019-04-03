@@ -1,8 +1,12 @@
 <?php
-
+/**
+ * FastSwoole - A PHP Framework For EasySwoole
+ *
+ * @package FastSwoole
+ * @author  wuguangping (Goh) <wuguangping@qq.com>
+ */
 
 namespace FastSwoole;
-
 
 use EasySwoole\Component\Pool\PoolManager;
 use EasySwoole\EasySwoole\Config;
@@ -50,7 +54,7 @@ class Db extends TpDb
         if ($db instanceof MysqlObject) {
             $db->gc();
             PoolManager::getInstance()->getPool(MysqlPool::class)->recycleObj($db);
-            $this->setDb(NULL);
+            $this->setDb(null);
         }
     }
 
@@ -58,19 +62,19 @@ class Db extends TpDb
      * @param null $data
      * @return bool|int
      */
-    protected function add($data = NULL)
+    protected function add($data = null)
     {
         try {
             return parent::insert($data);
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -78,19 +82,19 @@ class Db extends TpDb
      * @param null $data
      * @return bool|mixed
      */
-    protected function edit($data = NULL)
+    protected function edit($data = null)
     {
         try {
             return $this->update($data);
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -103,13 +107,13 @@ class Db extends TpDb
             return parent::delete();
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -122,13 +126,13 @@ class Db extends TpDb
             return parent::select();
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -142,13 +146,13 @@ class Db extends TpDb
             return parent::column($name);
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -162,13 +166,13 @@ class Db extends TpDb
             return parent::value($name);
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
@@ -181,20 +185,20 @@ class Db extends TpDb
             return parent::count();
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 
     /**
      * @return array|bool
      */
-    public function find($primaryKey = NULL)
+    public function find($primaryKey = null)
     {
         try {
             if ($primaryKey) {
@@ -204,13 +208,13 @@ class Db extends TpDb
             }
         } catch (\EasySwoole\Mysqli\Exceptions\ConnectFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\EasySwoole\Mysqli\Exceptions\PrepareQueryFail $e) {
             $this->throwable = $e;
-            return FALSE;
+            return false;
         } catch (\Throwable $t) {
             $this->throwable = $t;
-            return FALSE;
+            return false;
         }
     }
 

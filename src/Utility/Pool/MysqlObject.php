@@ -1,8 +1,12 @@
 <?php
-
+/**
+ * FastSwoole - A PHP Framework For EasySwoole
+ *
+ * @package FastSwoole
+ * @author  wuguangping (Goh) <wuguangping@qq.com>
+ */
 
 namespace FastSwoole\Utility\Pool;
-
 
 use EasySwoole\Component\Pool\PoolObjectInterface;
 use EasySwoole\Mysqli\Mysqli;

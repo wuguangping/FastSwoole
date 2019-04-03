@@ -1,8 +1,12 @@
 <?php
-
+/**
+ * FastSwoole - A PHP Framework For EasySwoole
+ *
+ * @package FastSwoole
+ * @author  wuguangping (Goh) <wuguangping@qq.com>
+ */
 
 namespace FastSwoole;
-
 
 use EasySwoole\Http\AbstractInterface\Controller as AbstractController;
 use FastSwoole\Utility\Code;
@@ -58,10 +62,10 @@ class Controller extends AbstractController
 
             $data = ['code' => $code, 'msg' => $msg ? $msg : Code::getReasonPhrase($code), 'result' => $result];
             $this->response()->write(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            return TRUE;
+            return true;
         } else {
             trigger_error("success: response has end");
-            return FALSE;
+            return false;
         }
     }
 
