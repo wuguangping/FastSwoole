@@ -1,6 +1,6 @@
 <?php
 /**
- * FastSwoole - A PHP Framework For EasySwoole
+ * FastSwoole - A Swoole Framework For EasySwoole
  *
  * @package FastSwoole
  * @author  wuguangping (Goh) <wuguangping@qq.com>

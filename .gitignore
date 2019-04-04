@@ -2,14 +2,14 @@
 /.idea/
 
 # composer
-vendor/
-composer.lock
+/vendor/
+/composer.lock
 
 # ESwoole
 /Log/
 /Temp/
-dev.php
-easyswoole
-EasySwooleEvent.php
-produce.php
+/dev.php
+/easyswoole
+/EasySwooleEvent.php
+/produce.php
 

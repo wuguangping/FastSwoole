@@ -25,7 +25,7 @@
     "autoload": {
         "psr-4": {
             "FastSwoole\\": "src/",
-            "App\\": "demo/App/"
+            "App\\": "App/"
         }
     },
     "repositories": {

@@ -1,6 +1,6 @@
 <?php
 /**
- * FastSwoole - A PHP Framework For EasySwoole
+ * FastSwoole - A Swoole Framework For EasySwoole
  *
  * @package FastSwoole
  * @author  wuguangping (Goh) <wuguangping@qq.com>
@@ -389,10 +389,17 @@ class Model
      * @param null|integer $numRows 需要返回的行数
      * @return $this|mixed
      */
-    function get($numRows = null, $columns = '')
+    function get($numRows = null, $columns = '', $getTotalCount = false)
     {
         $columns = $columns ? $columns : $this->columns;
-        return $this->getDb()->get($this->tableName, $numRows, $columns);
+        if ($getTotalCount) {
+            $this->withTotalCount();
+            $list = $this->getDb()->get($this->tableName, $numRows, $columns);
+            $total = $this->getTotalCount();
+            return ['list' => $list, 'total' => $total];
+        } else {
+            return $this->getDb()->get($this->tableName, $numRows, $columns);
+        }
     }
 
     /**

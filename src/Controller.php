@@ -1,6 +1,6 @@
 <?php
 /**
- * FastSwoole - A PHP Framework For EasySwoole
+ * FastSwoole - A Swoole Framework For EasySwoole
  *
  * @package FastSwoole
  * @author  wuguangping (Goh) <wuguangping@qq.com>
@@ -16,6 +16,32 @@ class Controller extends AbstractController
     function index()
     {
         // TODO: Implement index() method.
+    }
+
+    function getValue(array $arr, string $key, $default = null)
+    {
+        if (isset($arr[$key])) {
+            if (is_numeric($default)) {
+                return $arr[$key] > 0 ? intval($arr[$key]) : $default;
+            }
+            if (is_string($default)) {
+                return trim($arr[$key]);
+            }
+        }
+        return $default;
+    }
+
+    function param($key, $default)
+    {
+        $param = $this->request()->getRequestParam();
+        return $this->getValue($param, $key, $default);
+    }
+
+    function getNumRows()
+    {
+        $page = $this->param('page', 1);
+        $rows = $this->param('rows', 20);
+        return [($page - 1) * $rows, $rows];
     }
 
     /**
