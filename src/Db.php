@@ -44,7 +44,7 @@ class Db extends TpDb
         if ($db instanceof MysqlObject) {
             $this->setDb($db);
         } else {
-            throw new \Exception('mysql pool is empty');
+            throw new \Exception('MysqlPool is empty');
         }
     }
 

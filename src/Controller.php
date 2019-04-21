@@ -13,35 +13,126 @@ use FastSwoole\Utility\Code;
 
 class Controller extends AbstractController
 {
+    /**
+     * 模型分页查询参数
+     * @example [起始, 行数]
+     * @var array
+     */
+    protected $numRows = [];
+
+    /**
+     * 默认请求
+     */
     function index()
     {
         // TODO: Implement index() method.
     }
 
-    function getValue(array $arr, string $key, $default = null)
+    /**
+     * 重写请求
+     * @param string|null $action
+     * @return bool|null
+     */
+    protected function onRequest(?string $action): ?bool
     {
-        if (isset($arr[$key])) {
-            if (is_numeric($default)) {
-                return $arr[$key] > 0 ? intval($arr[$key]) : $default;
-            }
+        if (parent::onRequest($action)) {
+
+            // 分页参数
+            $page          = $this->param('page', 1); // 页数
+            $rows          = $this->param('rows', 20); // 行数
+            $num           = ($page - 1) * $rows;
+            $num           = $num < 0 ? 0 : $num; // 起始
+            $this->numRows = [$num, $rows];
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 获取 POST 参数
+     * @param string $name    参数名
+     * @param null   $default 默认值
+     * @return array|int|string|null
+     */
+    function post(string $name = '', $default = null)
+    {
+        $post = $this->request()->getParsedBody();
+        return $this->input($post, $name, $default);
+    }
+
+    /**
+     * 获取 GET 参数
+     * @param string $key     参数名
+     * @param null   $default 默认值
+     * @return array|int|string|null
+     */
+    function get(string $key = '', $default = null)
+    {
+        $post = $this->request()->getQueryParams();
+        return $this->input($post, $key, $default);
+    }
+
+    /**
+     * 获取 REQUEST 参数
+     * @param string $key     参数名
+     * @param null   $default 默认值
+     * @return array|int|string|null
+     */
+    function param(string $key = '', $default = null)
+    {
+        $data = $this->request()->getRequestParam();
+        return $this->input($data, $key, $default);
+    }
+
+    /**
+     * 获取参数 支持默认值
+     * @param array  $data    数据源
+     * @param string $name    参数名
+     * @param null   $default 默认值
+     * @return array|int|string|null
+     */
+    function input(array $data, string $name = '', $default = null)
+    {
+        // 默认返回所有数据
+        if (empty($name)) {
+            return $data;
+        }
+        $name = (string)$name;
+
+        // 获取参数
+        if (isset($data[$name])) {
+            $result = $data[$name];
+        } else {
+            return $default;
+        }
+
+        // 对象直接返回
+        if (is_object($result)) {
+            return $result;
+        }
+
+        // 解析参数类型
+        if (!empty($default) && $result !== $default) {
             if (is_string($default)) {
-                return trim($arr[$key]);
+                // 字符串
+                $result = (string)$result;
+            } else if (is_int($default)) {
+                // 整形
+                $result = (int)$result;
+            } else if (is_float($default)) {
+                // 浮点
+                $result = (float)$result;
+            } else if (is_bool($default)) {
+                // 布尔
+                $result = (bool)$result;
+            } else if (is_array($default)) {
+                // 数组
+                $result = (array)$result;
             }
         }
-        return $default;
-    }
 
-    function param($key, $default)
-    {
-        $param = $this->request()->getRequestParam();
-        return $this->getValue($param, $key, $default);
-    }
-
-    function getNumRows()
-    {
-        $page = $this->param('page', 1);
-        $rows = $this->param('rows', 20);
-        return [($page - 1) * $rows, $rows];
+        return $result;
     }
 
     /**
