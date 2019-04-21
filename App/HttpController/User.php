@@ -52,11 +52,7 @@ class User extends Controller
      */
     function model_total()
     {
-        // 分页参数
-        $numRows = $this->getNumRows();
-
-        $result = UserModel::init()->where('id', 2, '>')
-            ->get($numRows, 'id, username', true);
+        $result = UserModel::init()->get($this->numRows, 'id, username', true);
         $this->success(['list' => $result['list'], 'total' => $result['total']]);
     }
 }

@@ -10,6 +10,13 @@ namespace FastSwoole;
 
 use EasySwoole\Component\Pool\PoolManager;
 use EasySwoole\EasySwoole\Config;
+use EasySwoole\EasySwoole\Logger;
+use EasySwoole\Mysqli\Exceptions\ConnectFail;
+use EasySwoole\Mysqli\Exceptions\JoinFail;
+use EasySwoole\Mysqli\Exceptions\Option;
+use EasySwoole\Mysqli\Exceptions\OrderByFail;
+use EasySwoole\Mysqli\Exceptions\PrepareQueryFail;
+use EasySwoole\Mysqli\Exceptions\WhereParserFail;
 use EasySwoole\Mysqli\Mysqli;
 use EasySwoole\Spl\SplString;
 use FastSwoole\Utility\Pool\MysqlObject;
@@ -88,9 +95,8 @@ class Model
 
     /**
      * Model constructor.
-     * @throws \Exception
      */
-    public function __construct()
+    function __construct()
     {
         if (empty($this->prefix)) {
             $this->prefix = Config::getInstance()->getConf('MYSQL.prefix');
@@ -113,11 +119,12 @@ class Model
         if ($db instanceof MysqlObject) {
             $this->setDb($db);
         } else {
-            throw new \Exception('MysqlPool is empty');
+            Logger::getInstance()->console('MysqlPool Empty', $this->tableName);
+            return null;
         }
     }
 
-    public function __destruct()
+    function __destruct()
     {
         $db = $this->getDb();
         if ($db instanceof MysqlObject) {
@@ -131,7 +138,7 @@ class Model
      * 带前缀
      * @return string
      */
-    public function getTableName(): string
+    function getTableName(): string
     {
         return $this->tableName;
     }
@@ -140,7 +147,7 @@ class Model
      * @param $db
      * @return $this|null
      */
-    public function setDb($db)
+    function setDb($db)
     {
         if ($db instanceof Mysqli) {
             $this->db = $db;
@@ -153,13 +160,13 @@ class Model
     /**
      * @return Mysqli
      */
-    public function getDb(): Mysqli
+    function getDb(): Mysqli
     {
         return $this->db;
     }
 
     /**
-     * 增加条件
+     * 批量增加条件
      * @param array $condition
      */
     function addCondition($condition = [])
@@ -176,6 +183,23 @@ class Model
     }
 
     /**
+     * 开启查询跟踪
+     */
+    function startTrace()
+    {
+        $this->getDb()->startTrace();
+    }
+
+    /**
+     * 结束查询跟踪并返回结果
+     * @return array
+     */
+    function endTrace()
+    {
+        return $this->getDb()->endTrace();
+    }
+
+    /**
      * 执行原始查询语句
      * @param string $query      需要执行的语句
      * @param array  $bindParams 如使用参数绑定语法 请传入本参数
@@ -183,7 +207,18 @@ class Model
      */
     function rawQuery($query, array $bindParams = [])
     {
-        return $this->getDb()->rawQuery($query, $bindParams);
+        try {
+            return $this->getDb()->rawQuery($query, $bindParams);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
@@ -192,7 +227,15 @@ class Model
      */
     function startTransaction(): bool
     {
-        return $this->getDb()->startTransaction();
+        try {
+            return $this->getDb()->startTransaction();
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
@@ -201,7 +244,15 @@ class Model
      */
     function commit(): bool
     {
-        return $this->getDb()->commit();
+        try {
+            return $this->getDb()->commit();
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
@@ -211,21 +262,28 @@ class Model
      */
     function rollback($commit = true)
     {
-        return $this->getDb()->rollback($commit);
+        try {
+            return $this->getDb()->rollback($commit);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 添加一个WHERE条件
      * @example UserModel::init()->where('status', 0)->where('id', 100, '>')->...
+     * @param string $whereProp  字段名
      * @param string $whereValue 字段值
      * @param string $operator   字段操作
      * @param string $cond       多个where的逻辑关系
-     * @param string $whereProp  字段名
      * @return $this
      */
     function where($whereProp, $whereValue = 'DBNULL', $operator = '=', $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->where($whereProp, $whereValue, $operator, $cond);
         return $this;
     }
@@ -239,7 +297,6 @@ class Model
      */
     function whereOr($whereProp, $whereValue = 'DBNULL', $operator = '=')
     {
-        $this->isWhere = true;
         $this->getDb()->whereOr($whereProp, $whereValue, $operator);
         return $this;
     }
@@ -252,7 +309,6 @@ class Model
      */
     function whereNull($whereProp, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereNull($whereProp, $cond);
         return $this;
     }
@@ -265,7 +321,6 @@ class Model
      */
     function whereNotNull($whereProp, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereNotNull($whereProp, $cond);
         return $this;
     }
@@ -278,7 +333,6 @@ class Model
      */
     function whereEmpty($whereProp, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereEmpty($whereProp, $cond);
         return $this;
     }
@@ -291,7 +345,6 @@ class Model
      */
     function whereNotEmpty($whereProp, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereEmpty($whereProp, $cond);
         return $this;
     }
@@ -305,7 +358,6 @@ class Model
      */
     function whereIn($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereIn($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -319,7 +371,6 @@ class Model
      */
     function whereNotIn($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereNotIn($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -327,30 +378,40 @@ class Model
     /**
      * 在两者之间
      * @example UserModel::init()->whereBetween('id', '1,2')->get()
+     * @param string       $whereProp  字段名
      * @param string|array $whereValue 可传数组或逗号分隔 [ 1 , 2 ] OR '1,2'
      * @param string       $cond       多个where的逻辑关系
-     * @param string       $whereProp  字段名
      * @return $this
      */
     function whereBetween($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
-        $this->getDb()->whereBetween($whereProp, $whereValue, $cond);
+        try {
+            $this->getDb()->whereBetween($whereProp, $whereValue, $cond);
+        } catch (WhereParserFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
     }
 
     /**
      * 不在两者之间
      * @example UserModel::init()->whereNotBetween('id', '1,2')->get()
+     * @param string       $whereProp  字段名
      * @param string|array $whereValue 可传数组或逗号分隔 [ 1 , 2 ] OR '1,2'
      * @param string       $cond       多个where的逻辑关系
-     * @param string       $whereProp  字段名
      * @return $this
      */
     function whereNotBetween($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
-        $this->getDb()->whereNotBetween($whereProp, $whereValue, $cond);
+        try {
+            $this->getDb()->whereNotBetween($whereProp, $whereValue, $cond);
+        } catch (WhereParserFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
     }
 
@@ -363,7 +424,6 @@ class Model
      */
     function whereLike($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereLike($whereProp, $whereValue, $cond);
         return $this;
     }
@@ -377,91 +437,172 @@ class Model
      */
     function whereNotLike($whereProp, $whereValue, $cond = 'AND')
     {
-        $this->isWhere = true;
         $this->getDb()->whereNotLike($whereProp, $whereValue, $cond);
         return $this;
     }
 
     /**
      * SELECT 查询数据
-     * @example UserModel::init()->where('status', 1)->get([0, 20], 'id, name')
-     * @param string       $columns 需要返回的字段
-     * @param null|integer $numRows 需要返回的行数
-     * @return $this|mixed
+     * @example UserModel::init()->where('status', 1)->get('id, name')
+     * @param string       $columns        需要返回的字段
+     * @param null|integer $numRows        需要返回的行数
+     * @param bool         $withTotalCount 是否返回查询结果总数
+     * @param string       $tableName      表名称
+     * @return array|mixed
      */
-    function get($numRows = null, $columns = '', $getTotalCount = false)
+    function get($columns = '*', $tableName = '', $numRows = null)
     {
-        $columns = $columns ? $columns : $this->columns;
-        if ($getTotalCount) {
-            $this->withTotalCount();
-            $list = $this->getDb()->get($this->tableName, $numRows, $columns);
-            $total = $this->getTotalCount();
-            return ['list' => $list, 'total' => $total];
-        } else {
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        $columns         = $columns ? $columns : $this->columns;
+        try {
             return $this->getDb()->get($this->tableName, $numRows, $columns);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
         }
     }
 
     /**
+     * SELECT 查询数据带 TOTAL
+     * @example UserModel::init()->where('status', 1)->get([0, 20], 'id, name', true)
+     * @param string       $columns        需要返回的字段
+     * @param null|integer $numRows        需要返回的行数
+     * @param bool         $withTotalCount 是否返回查询结果总数
+     * @param string       $tableName      表名称
+     * @return array|mixed
+     */
+    function getWithTotalCount($numRows = null, $columns = '*', $tableName = '')
+    {
+        $this->withTotalCount();
+        $list  = $this->get($columns, $tableName, $numRows);
+        $total = $this->getTotalCount();
+        return ['list' => $list, 'total' => $total];
+    }
+
+    /**
      * SELECT LIMIT 1 查询单条数据
-     * @example UserModel::init()->where('status', 1)->getOne('id, name')
-     * @param string $columns 需要返回的字段
+     * @example UserModel::init()->where('status', 1)->getOne()
+     * @param string $columns   需要返回的字段
+     * @param string $tableName 表名称
      * @return Mysqli|mixed|null
      */
-    function getOne($columns = '')
+    function getOne($columns = '*', $tableName = '')
     {
-        $columns = $columns ? $columns : $this->columns;
-        return $this->getDb()->getOne($this->tableName, $columns);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->getOne($this->tableName, $columns);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 获取某一个字段的值
-     * @param string $column 需要返回的字段
-     * @param int    $limit  限制返回的行数
-     * @return array|null
+     * @param string $column    需要返回的字段
+     * @param int    $limit     限制返回的行数
+     * @param string $tableName 表名称
+     * @return array|bool|null
      */
-    function getValue($column, $limit = 1)
+    function getValue($column, $limit = 1, $tableName = '')
     {
-        return $this->getDb()->getValue($this->tableName, $column, $limit);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->getValue($this->tableName, $column, $limit);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 获取某一列的数据
      * @param string $columnName 需要获取的列名称
      * @param null   $limit      最多返回几条数据
-     * @return array
+     * @param string $tableName  表名称
+     * @return array|bool
      */
-    function getColumn($columnName, $limit = null)
+    function getColumn($columnName, $limit = null, $tableName = '')
     {
-        return $this->getDb()->getColumn($this->tableName, $columnName, $limit);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->getColumn($this->tableName, $columnName, $limit);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 插入一行数据
      * @example UserModel::init()->insert(['status' => 1]);
-     * @param array $insertData
+     * @param array  $insertData
+     * @param string $tableName 表名称
      * @return bool|int
      */
-    function insert($insertData)
+    function insert($insertData, $tableName = '')
     {
-        if ($this->createTime === true) {
-            $insertData[$this->createTimeName] = time();
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->insert($this->tableName, $insertData);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
         }
-        return $this->getDb()->insert($this->tableName, $insertData);
     }
 
     /**
      * 替换插入一行数据
      * @example UserModel::init()->replace(['status' => 1]);
-     * @param array $insertData
+     * @param array  $insertData
+     * @param string $tableName 表名称
      * @return bool|int|null
      */
-    function replace($insertData)
+    function replace($insertData, $tableName = '')
     {
-        if ($this->createTime === true) {
-            $insertData[$this->createTimeName] = time();
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->replace($this->tableName, $insertData);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
         }
-        return $this->getDb()->replace($this->tableName, $insertData);
     }
 
     /**
@@ -480,88 +621,179 @@ class Model
      * 插入多行数据
      * @param array      $multiInsertData 需要插入的数据
      * @param array|null $dataKeys        插入数据对应的字段名
+     * @param string     $tableName       表名称
      * @return array|bool
      */
-    function insertMulti(array $multiInsertData, array $dataKeys = null)
+    function insertMulti(array $multiInsertData, array $dataKeys = null, $tableName = '')
     {
-        return $this->getDb()->insertMulti($this->tableName, $multiInsertData, $dataKeys);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->insertMulti($this->tableName, $multiInsertData, $dataKeys);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 该查询条件下是否存在数据
      * @example UserModel::init()->where('status', 1)->has()
      * @param string $tableName 查询的表名称
+     * @param string $tableName 表名称
      * @return bool
      */
-    function has()
+    function has($tableName = '')
     {
-        return $this->getDb()->has($this->tableName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->has($this->tableName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (Option $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 聚合-计算总数
      * @example UserModel::init()->where('status', 1)->count('id')
      * @param string|null $filedName 字段名称
+     * @param string      $tableName 表名称
      * @return mixed
      */
-    function count($filedName = null)
+    function count($filedName = null, $tableName = '')
     {
+        $this->tableName = $tableName ? $tableName : $this->tableName;
         return $this->getDb()->count($this->tableName, $filedName);
     }
 
     /**
      * 聚合-求最大值
      * @param string $filedName 字段名称
+     * @param string $tableName 表名称
      * @return mixed
      */
-    function max($filedName)
+    function max($filedName, $tableName = '')
     {
-        return $this->getDb()->max($this->tableName, $filedName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->max($this->tableName, $filedName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 聚合-求最小值
      * @param string $filedName 字段名称
+     * @param string $tableName 表名称
      * @return mixed
      */
-    function min($filedName)
+    function min($filedName, $tableName = '')
     {
-        return $this->getDb()->min($this->tableName, $filedName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->min($this->tableName, $filedName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 聚合-计算和值
      * @param string $filedName 字段名称
+     * @param string $tableName 表名称
      * @return mixed
      */
-    function sum($filedName)
+    function sum($filedName, $tableName = '')
     {
-        return $this->getDb()->sum($this->tableName, $filedName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->sum($this->tableName, $filedName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 聚合-求平均值
      * @param string $filedName 字段名称
+     * @param string $tableName 表名称
      * @return mixed
      */
-    function avg($filedName)
+    function avg($filedName, $tableName = '')
     {
-        return $this->getDb()->avg($this->tableName, $filedName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->avg($this->tableName, $filedName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 删除数据
      * @example UserModel::init()->where('id', 1)->delete()
-     * @param null|integer $numRows 限制删除的行数
+     * @param null|integer $numRows   限制删除的行数
+     * @param string       $tableName 表名称
      * @return bool|null
      */
-    function delete($numRows = null)
+    function delete($numRows = null, $tableName = '')
     {
-        if ($this->softDelete === true) {
-            $tableData[$this->softDeleteTimeName] = time();
-            return $this->getDb()->update($this->tableName, $tableData, $numRows);
-        } else {
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
             return $this->getDb()->delete($this->tableName, $numRows);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
         }
     }
 
@@ -569,35 +801,74 @@ class Model
      * 设置单个字段的值 (属于Update的快捷方法 )
      * 可用于快速更改某个字段的状态
      * @example UserModel::init()->whereIn('id', '1,2,3,4')->setValue('status', 1)
-     * @param $filedName
-     * @param $value
-     * @param $tableName
+     * @param        $tableName
+     * @param        $filedName
+     * @param        $value
+     * @param string $tableName 表名称
      * @return mixed
      */
-    function setValue($filedName, $value)
+    function setValue($filedName, $value, $tableName = '')
     {
-        return $this->getDb()->setValue($this->tableName, $filedName, $value);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->setValue($this->tableName, $filedName, $value);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 更新数据
      * @example UserModel::init()->where('id', 1)->update(['status' => 1]);
-     * @param null|integer $numRows   限制更新的行数
      * @param array        $tableData 需要更新的数据
+     * @param null|integer $numRows   限制更新的行数
+     * @param string       $tableName 表名称
      * @return mixed
      */
-    function update($tableData, $numRows = null)
+    function update($tableData, $numRows = null, $tableName = '')
     {
-        return $this->getDb()->update($this->tableName, $tableData, $numRows);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->update($this->tableName, $tableData, $numRows);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 表是否存在
+     * @param string $tableName 表名称
      * @return bool
      */
-    function tableExists()
+    function tableExists($tableName = '')
     {
-        return $this->getDb()->tableExists($this->tableName);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->tableExists($this->tableName);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
@@ -623,28 +894,54 @@ class Model
     /**
      * 自增某个字段
      * @example UserModel::init()->where('id', 1)->setInc('level', 1)
-     * @param int|float $num       操作数量
      * @param string    $filedName 操作的字段名称
+     * @param int|float $num       操作数量
+     * @param string    $tableName 表名称
      * @return mixed
      * @TODO    set inc after lock some line
      */
-    function setInc($filedName, $num = 1)
+    function setInc($filedName, $num = 1, $tableName = '')
     {
-        return $this->getDb()->setInc($this->tableName, $filedName, $num);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->setInc($this->tableName, $filedName, $num);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
      * 自减某个字段
      * @example UserModel::init()->where('id', 1)->where('level', 1, '>')->setInc('level', 1)
+     * @param string    $tableName 表名称
      * @param string    $filedName 操作的字段名称
      * @param int|float $num       操作数量
      * @param string    $tableName 表名称
      * @return mixed
      * @TODO    set dec after lock some line
      */
-    function setDec($filedName, $num = 1)
+    function setDec($filedName, $num = 1, $tableName = '')
     {
-        return $this->getDb()->setDec($this->tableName, $filedName, $num);
+        $this->tableName = $tableName ? $tableName : $this->tableName;
+        try {
+            return $this->getDb()->setDec($this->tableName, $filedName, $num);
+        } catch (ConnectFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (PrepareQueryFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        } catch (\Throwable $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+            return false;
+        }
     }
 
     /**
@@ -665,7 +962,11 @@ class Model
      */
     public function withTotalCount()
     {
-        $this->getDb()->withTotalCount();
+        try {
+            $this->getDb()->withTotalCount();
+        } catch (Option $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
     }
 
@@ -695,10 +996,36 @@ class Model
      * @param string $joinType      连接类型
      * @return $this
      */
-    function join($joinTable, $joinCondition, $joinType = 'LEFT')
+    function join($joinTable, $joinCondition, $joinType = '')
     {
-        $this->getDb()->join($joinTable, $joinCondition, $joinType);
+        try {
+            $this->getDb()->join($joinTable, $joinCondition, $joinType);
+        } catch (JoinFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
+    }
+
+    /**
+     * 表左连接查询
+     * @param string $joinTable     被连接的表
+     * @param string $joinCondition 连接条件
+     * @return $this
+     */
+    function leftJoin($joinTable, $joinCondition)
+    {
+        return $this->join($joinTable, $joinCondition, 'LEFT');
+    }
+
+    /**
+     * 表右连接查询
+     * @param string $joinTable     被连接的表
+     * @param string $joinCondition 连接条件
+     * @return $this
+     */
+    function rightJoin($joinTable, $joinCondition)
+    {
+        return $this->join($joinTable, $joinCondition, 'RIGHT');
     }
 
     /**
@@ -708,7 +1035,11 @@ class Model
      */
     public function setQueryOption($options)
     {
-        $this->getDb()->setQueryOption($options);
+        try {
+            $this->getDb()->setQueryOption($options);
+        } catch (Option $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
     }
 
@@ -782,7 +1113,11 @@ class Model
      */
     public function orderBy($orderByField, $orderByDirection = 'DESC', $customFieldsOrRegExp = null)
     {
-        $this->getDb()->orderBy($orderByField, $orderByDirection, $customFieldsOrRegExp);
+        try {
+            $this->getDb()->orderBy($orderByField, $orderByDirection, $customFieldsOrRegExp);
+        } catch (OrderByFail $e) {
+            Logger::getInstance()->console($e->getMessage(), $this->tableName);
+        }
         return $this;
     }
 
